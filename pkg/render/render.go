@@ -21,7 +21,7 @@ func AddDefaultData(td *models.TemplateData) *models.TemplateData {
 	return td
 }
 
-func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
+func DisplayTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
 
 	var tc map[string]*template.Template
 
@@ -91,7 +91,7 @@ A Simple Caching mechanism
 
 var tc = make(map[string]*template.Template)
 
-func RenderTemplate(w http.ResponseWriter, t string) {
+func DisplayTemplate(w http.ResponseWriter, t string) {
 	var tmpl *template.Template
 	var err error
 
