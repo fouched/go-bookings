@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fouched/go-bookings/internal/config"
+	"github.com/fouched/go-bookings/internal/forms"
 	"github.com/fouched/go-bookings/internal/models"
 	"github.com/fouched/go-bookings/internal/render"
 	"log"
@@ -53,7 +54,14 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 
 // Reservation renders the reservation page
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	render.DisplayTemplate(w, r, "make-reservation.page.gohtml", &models.TemplateData{})
+	render.DisplayTemplate(w, r, "make-reservation.page.gohtml", &models.TemplateData{
+		Form: forms.New(nil),
+	})
+}
+
+// PostReservation handles the posting of a reservation form
+func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+
 }
 
 // Generals renders the generals room page
