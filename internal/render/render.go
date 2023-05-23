@@ -2,8 +2,8 @@ package render
 
 import (
 	"bytes"
-	"github.com/fouched/go-bookings/pkg/config"
-	"github.com/fouched/go-bookings/pkg/models"
+	"github.com/fouched/go-bookings/internal/config"
+	"github.com/fouched/go-bookings/internal/models"
 	"github.com/justinas/nosurf"
 	"html/template"
 	"log"
