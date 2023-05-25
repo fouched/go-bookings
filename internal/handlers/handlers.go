@@ -87,6 +87,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	// perform validation
 	form.Required("first_name", "last_name", "email")
 	form.MinLength("first_name", 3, r)
+	form.IsEmail("email")
 
 	// deal with validation errors
 	if !form.Valid() {
