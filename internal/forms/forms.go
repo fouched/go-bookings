@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Form creates a custom form struct and embeds a url.Values object
+// Form creates a custom form struct and embeds an url.Values object
 type Form struct {
 	url.Values
 	Errors errors
