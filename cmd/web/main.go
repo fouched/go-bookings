@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/alexedwards/scs/v2"
 	"github.com/fouched/go-bookings/internal/config"
 	"github.com/fouched/go-bookings/internal/handlers"
+	"github.com/fouched/go-bookings/internal/models"
 	"github.com/fouched/go-bookings/internal/render"
 	"log"
 	"net/http"
@@ -17,7 +19,11 @@ var app config.AppConfig
 var session *scs.SessionManager
 
 func main() {
+	// define complex types that will
+	// be stored in the session
+	gob.Register(models.Reservation{})
 
+	// change to true for production
 	app.InProduction = false
 
 	session = scs.New()

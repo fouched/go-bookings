@@ -102,6 +102,11 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// validation passed, put form data into session for confirmation screen
+	m.App.Session.Put(r.Context(), "reservation", reservation)
+	// Good practice: prevent a post re-submit with a http redirect
+	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)
+
 }
 
 // Generals renders the generals room page
@@ -151,4 +156,28 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 // Contact renders the contact page
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 	render.DisplayTemplate(w, r, "contact.page.gohtml", &models.TemplateData{})
+}
+
+func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
+	// complex types need to be type cast out of the session: hence (models.Reservation)
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	// session data read, it can now be removed
+	m.App.Session.Remove(r.Context(), "reservation")
+
+	// ensure that we got the value from the session
+	if !ok {
+		log.Println("Cannot get item from session")
+		m.App.Session.Put(r.Context(), "error", "Can't get reservation from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	// use the stored session data
+	data := make(map[string]interface{})
+	data["reservation"] = reservation
+
+	// display template with the stored session data
+	render.DisplayTemplate(w, r, "reservation-summary.page.gohtml", &models.TemplateData{
+		Data: data,
+	})
 }
