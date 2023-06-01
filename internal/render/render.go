@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/fouched/go-bookings/internal/config"
 	"github.com/fouched/go-bookings/internal/models"
 	"github.com/justinas/nosurf"
@@ -12,6 +13,7 @@ import (
 )
 
 var app *config.AppConfig
+var pathToTemplates = "./templates"
 
 // NewTemplates sets the config for the template package
 func NewTemplates(a *config.AppConfig) {
@@ -58,7 +60,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
 
 	// get all files named *.page.gohtml
-	pages, err := filepath.Glob("./templates/*.page.gohtml")
+	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.gohtml", pathToTemplates))
 	if err != nil {
 		return myCache, err
 	}
@@ -72,13 +74,13 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		}
 
 		// find all layouts
-		layouts, err := filepath.Glob("./templates/*.layout.gohtml")
+		layouts, err := filepath.Glob(fmt.Sprintf("%s/*.layout.gohtml", pathToTemplates))
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(layouts) > 0 {
-			ts, err = ts.ParseGlob("./templates/*.layout.gohtml")
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.gohtml", pathToTemplates))
 			if err != nil {
 				return myCache, err
 			}
