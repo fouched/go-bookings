@@ -2,12 +2,12 @@ package render
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/fouched/go-bookings/internal/config"
 	"github.com/fouched/go-bookings/internal/models"
 	"github.com/justinas/nosurf"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 )
@@ -28,7 +28,7 @@ func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	return td
 }
 
-func DisplayTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) {
+func DisplayTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) error {
 
 	var tc map[string]*template.Template
 
@@ -42,7 +42,8 @@ func DisplayTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mo
 	// get requested template from cache
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal("Could not get template from template cache")
+		//log.Println("could not get template from template cache")
+		return errors.New("could not get template from template cache")
 	}
 
 	buf := new(bytes.Buffer)
@@ -52,8 +53,11 @@ func DisplayTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mo
 	// render the template
 	_, err := buf.WriteTo(w)
 	if err != nil {
-		log.Println("Error writing template to browser", err)
+		//log.Println("error writing template to browser", err)
+		return err
 	}
+
+	return nil
 }
 
 func CreateTemplateCache() (map[string]*template.Template, error) {

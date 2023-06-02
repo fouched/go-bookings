@@ -20,6 +20,46 @@ func TestAddDefaultData(t *testing.T) {
 	if result.Flash != "123" {
 		t.Error("flash value of 123 not found in session")
 	}
+
+}
+
+func TestDisplayTemplate(t *testing.T) {
+	pathToTemplates = "./../../templates"
+	tc, err := CreateTemplateCache()
+	if err != nil {
+		t.Error(err)
+	}
+
+	app.TemplateCache = tc
+	r, err := getSession()
+	if err != nil {
+		t.Error(err)
+	}
+
+	var ww myWriter
+
+	err = DisplayTemplate(&ww, r, "home.page.gohtml", &models.TemplateData{})
+	if err != nil {
+		t.Error("error writing template to browser")
+	}
+
+	err = DisplayTemplate(&ww, r, "non-existent.page.gohtml", &models.TemplateData{})
+	if err == nil {
+		t.Error("displayed template that does not exist")
+	}
+
+}
+
+func TestNewTemplates(t *testing.T) {
+	NewTemplates(app)
+}
+
+func TestCreateTemplateCache(t *testing.T) {
+	pathToTemplates = "./../../templates"
+	_, err := CreateTemplateCache()
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func getSession() (*http.Request, error) {
