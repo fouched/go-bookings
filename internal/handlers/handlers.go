@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fouched/go-bookings/internal/config"
+	"github.com/fouched/go-bookings/internal/driver"
 	"github.com/fouched/go-bookings/internal/forms"
 	"github.com/fouched/go-bookings/internal/helpers"
 	"github.com/fouched/go-bookings/internal/models"
 	"github.com/fouched/go-bookings/internal/render"
+	"github.com/fouched/go-bookings/internal/repository"
+	"github.com/fouched/go-bookings/internal/repository/dbrepo"
 	"net/http"
 )
 
@@ -17,12 +20,14 @@ var Repo *Repository
 // Repository is the repository type
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepo
 }
 
 // NewRepo creates a new repository
-func NewRepo(a *config.AppConfig) *Repository {
+func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
 	}
 }
 
@@ -33,6 +38,7 @@ func NewHandlers(r *Repository) {
 
 // Home is the home page handler
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
+	m.DB.AllUsers()
 	render.DisplayTemplate(w, r, "home.page.gohtml", &models.TemplateData{})
 }
 

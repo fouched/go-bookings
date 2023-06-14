@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/alexedwards/scs/v2"
 	"github.com/fouched/go-bookings/internal/config"
+	"github.com/fouched/go-bookings/internal/driver"
 	"github.com/fouched/go-bookings/internal/handlers"
 	"github.com/fouched/go-bookings/internal/helpers"
 	"github.com/fouched/go-bookings/internal/models"
@@ -23,10 +24,12 @@ var infoLog *log.Logger
 var errorLog *log.Logger
 
 func main() {
-	err := run()
+	db, err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
+	// close database connection after application has stopped
+	defer db.SQL.Close()
 
 	fmt.Println(fmt.Sprintf("Starting application on %s", portNumber))
 
@@ -39,7 +42,7 @@ func main() {
 	log.Fatal(err)
 }
 
-func run() error {
+func run() (*driver.DB, error) {
 	// define complex types that will
 	// be stored in the session
 	gob.Register(models.Reservation{})
@@ -62,18 +65,26 @@ func run() error {
 
 	app.Session = session
 
+	// connect to database
+	log.Println("Connecting to database...")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=fouche password=javac")
+	if err != nil {
+		log.Fatal("Cannot connect to database! Dying...")
+	}
+	log.Println("Connected to database")
+
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create template cache")
-		return err
+		return nil, err
 	}
 	app.TemplateCache = tc
 	app.UseCache = app.InProduction
 
-	repo := handlers.NewRepo(&app)
+	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
 	render.NewTemplates(&app)
 	helpers.NewHelpers(&app)
 
-	return nil
+	return db, nil
 }
