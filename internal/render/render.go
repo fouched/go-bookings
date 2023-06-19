@@ -15,8 +15,8 @@ import (
 var app *config.AppConfig
 var pathToTemplates = "./templates"
 
-// NewTemplates sets the config for the template package
-func NewTemplates(a *config.AppConfig) {
+// NewRenderer sets the config for the template package
+func NewRenderer(a *config.AppConfig) {
 	app = a
 }
 
@@ -28,7 +28,7 @@ func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	return td
 }
 
-func DisplayTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) error {
+func Template(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) error {
 
 	var tc map[string]*template.Template
 
@@ -102,7 +102,7 @@ A Simple Caching mechanism
 
 var tc = make(map[string]*template.Template)
 
-func DisplayTemplate(w http.ResponseWriter, t string) {
+func Template(w http.ResponseWriter, t string) {
 	var tmpl *template.Template
 	var err error
 

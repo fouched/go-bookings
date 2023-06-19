@@ -38,12 +38,12 @@ func TestDisplayTemplate(t *testing.T) {
 
 	var ww myWriter
 
-	err = DisplayTemplate(&ww, r, "home.page.gohtml", &models.TemplateData{})
+	err = Template(&ww, r, "home.page.gohtml", &models.TemplateData{})
 	if err != nil {
 		t.Error("error writing template to browser")
 	}
 
-	err = DisplayTemplate(&ww, r, "non-existent.page.gohtml", &models.TemplateData{})
+	err = Template(&ww, r, "non-existent.page.gohtml", &models.TemplateData{})
 	if err == nil {
 		t.Error("displayed template that does not exist")
 	}
@@ -51,7 +51,7 @@ func TestDisplayTemplate(t *testing.T) {
 }
 
 func TestNewTemplates(t *testing.T) {
-	NewTemplates(app)
+	NewRenderer(app)
 }
 
 func TestCreateTemplateCache(t *testing.T) {
