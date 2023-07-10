@@ -23,3 +23,6 @@ go.work
 .idea
 coverage.out
 database.yml
+
+bookings
+bookings.exe
