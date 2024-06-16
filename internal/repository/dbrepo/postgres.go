@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const dbTimeout = time.Second * 3
+
 func (m *postgresDBRepo) AllUsers() bool {
 	return true
 }
@@ -14,8 +16,8 @@ func (m *postgresDBRepo) AllUsers() bool {
 func (m *postgresDBRepo) InsertReservation(res models.Reservation) (int, error) {
 
 	// Execute query within a timeout using a Go built-in context.
-	// This ensures that it does not stay open if users exists etc.
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	// This ensures that it does not stay open if users exits etc.
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	var newID int
@@ -46,8 +48,8 @@ func (m *postgresDBRepo) InsertReservation(res models.Reservation) (int, error) 
 // InsertRoomRestriction inserts a room restriction into the database
 func (m *postgresDBRepo) InsertRoomRestriction(r models.RoomRestriction) error {
 	// Execute query within a timeout using a Go built-in context.
-	// This ensures that it does not stay open if users exists etc.
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	// This ensures that it does not stay open if users exits etc.
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	stmt := `INSERT INTO room_restrictions (start_date, end_date, room_id, reservation_id,
