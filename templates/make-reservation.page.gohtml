@@ -5,10 +5,18 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1 class="text-center mt-4">Make Reservation</h1>
             {{$res := index .Data "reservation"}}
+            <h1 class="text-center mt-4">Make Reservation</h1>
+            <p><strong>Reservation Details</strong><br>
+                Room: {{$res.Room.RoomName}}<br>
+                Arrival: {{index .StringMap "start_date"}}<br>
+                Departure: {{index .StringMap "end_date"}}
+            </p>
             <form action="/make-reservation" method="post" class="" novalidate>
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <input type="hidden" name="start_date" value="{{index .StringMap "start_date"}}">
+                <input type="hidden" name="end_date" value="{{index .StringMap "end_date"}}">
+                <input type="hidden" name="room_id" value="{{$res.RoomID}}">
 
                 <div class="mt-5 mb-3">
                     <label for="first_name">First name:</label>
@@ -28,17 +36,6 @@
                            type="text" name="last_name" id="last_name"
                            value="{{$res.LastName}}" required autocomplete="off">
                 </div>
-
-                <div class="mb-3">
-                    <label for="start_date">Start Date:</label>
-                    <input type="text" class="form-control" name="start_date" id="start_date">
-                </div>
-                <div class="mb-3">
-                    <label for="end_date">End Date:</label>
-                    <input type="text" class="form-control" name="end_date" id="end_date">
-                </div>
-                <input type="hidden" name="room_id" value="1">
-
                 <div class="mb-3">
                     <label for="email">Email:</label>
                     {{with .Form.Errors.Get "email"}}
