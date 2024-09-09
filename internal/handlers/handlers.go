@@ -65,6 +65,7 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res.Room.RoomName = room.RoomName
+	m.App.Session.Put(r.Context(), "reservation", res)
 
 	sd := res.StartDate.Format(time.DateOnly)
 	ed := res.EndDate.Format(time.DateOnly)
@@ -84,6 +85,13 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 
 // PostReservation handles the posting of a reservation form
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, errors.New("can't get from session"))
+		return
+	}
+
 	// ensure that we can parse the form
 	err := r.ParseForm()
 	if err != nil {
@@ -91,41 +99,10 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sd := r.Form.Get("start_date")
-	ed := r.Form.Get("end_date")
-
-	// Go reference time:
-	// Mon Jan 2 15:04:05 MST 2006  (MST is GMT-0700)
-	// 01/02 03:04:05PM '06 -0700
-	// We have YYYY-MM-DD, so represent the reference time
-	// in a layout string that matched the desired format: time.DateOnly
-	startDate, err := time.Parse(time.DateOnly, sd)
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
-	endDate, err := time.Parse(time.DateOnly, ed)
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
-
-	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
-
-	// read in form data
-	reservation := models.Reservation{
-		FirstName: r.Form.Get("first_name"),
-		LastName:  r.Form.Get("last_name"),
-		Email:     r.Form.Get("email"),
-		Phone:     r.Form.Get("phone"),
-		StartDate: startDate,
-		EndDate:   endDate,
-		RoomID:    roomID,
-	}
+	reservation.FirstName = r.Form.Get("first_name")
+	reservation.LastName = r.Form.Get("last_name")
+	reservation.Phone = r.Form.Get("phone")
+	reservation.Email = r.Form.Get("email")
 
 	// populate a new form with the post data
 	form := forms.New(r.PostForm)
@@ -156,9 +133,9 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	restriction := models.RoomRestriction{
-		StartDate:     startDate,
-		EndDate:       endDate,
-		RoomID:        roomID,
+		StartDate:     reservation.StartDate,
+		EndDate:       reservation.EndDate,
+		RoomID:        reservation.RoomID,
 		ReservationID: newReservationID,
 		RestrictionID: 1,
 	}
@@ -262,6 +239,7 @@ func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
+
 	// complex types need to be type cast out of the session: hence (models.Reservation)
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	// session data read, it can now be removed
@@ -279,9 +257,16 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
 
+	sd := reservation.StartDate.Format(time.DateOnly)
+	ed := reservation.StartDate.Format(time.DateOnly)
+	stringMap := make(map[string]string)
+	stringMap["start_date"] = sd
+	stringMap["end_date"] = ed
+
 	// display template with the stored session data
 	render.Template(w, r, "reservation-summary.page.gohtml", &models.TemplateData{
-		Data: data,
+		Data:      data,
+		StringMap: stringMap,
 	})
 }
 
