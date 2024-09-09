@@ -123,6 +123,8 @@
     const rangepicker = new DateRangePicker(elem, {
         buttonClass: 'btn',
         format: 'yyyy-mm-dd',
+        minDate: new Date(),
+        autohide: true,
     });
 
     function notify(msg, msgType) {
@@ -244,6 +246,9 @@
                     const rp = new DateRangePicker(elem, {
                         format: 'yyyy-mm-dd',
                         showOnFocus: true,
+                        buttonClass: 'btn',
+                        minDate: new Date(),
+                        autohide: true,
                     })
                 },
                 preConfirm: () => {
