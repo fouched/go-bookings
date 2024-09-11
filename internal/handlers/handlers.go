@@ -252,6 +252,7 @@ func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 	render.Template(w, r, "contact.page.gohtml", &models.TemplateData{})
 }
 
+// ReservationSummary displays the Reservation Summary page
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
 
 	// complex types need to be type cast out of the session: hence (models.Reservation)
@@ -284,6 +285,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+// ChooseRoom displays list of available rooms
 func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
 
 	roomID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -299,6 +301,33 @@ func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res.RoomID = roomID
+	m.App.Session.Put(r.Context(), "reservation", res)
+
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
+}
+
+// BookRoom takes URL params, build session variable and redirects to make reservation
+func (m *Repository) BookRoom(w http.ResponseWriter, r *http.Request) {
+
+	roomID, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	sd := r.URL.Query().Get("sd")
+	ed := r.URL.Query().Get("ed")
+
+	startDate, _ := time.Parse(time.DateOnly, sd)
+	endDate, _ := time.Parse(time.DateOnly, ed)
+
+	room, err := m.DB.GetRoomByID(roomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	var res models.Reservation
+	res.RoomID = roomID
+	res.StartDate = startDate
+	res.EndDate = endDate
+	res.Room.RoomName = room.RoomName
+
 	m.App.Session.Put(r.Context(), "reservation", res)
 
 	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
