@@ -34,6 +34,14 @@ func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	}
 }
 
+// NewTestRepo creates a new repository
+func NewTestRepo(a *config.AppConfig) *Repository {
+	return &Repository{
+		App: a,
+		DB: dbrepo.NewTestingRepo(a),
+	}
+}
+
 // NewHandlers sets the repository for the handlers
 func NewHandlers(r *Repository) {
 	Repo = r
@@ -41,7 +49,7 @@ func NewHandlers(r *Repository) {
 
 // Home is the home page handler
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	m.DB.AllUsers()
+	//m.DB.AllUsers()
 	render.Template(w, r, "home.page.gohtml", &models.TemplateData{})
 }
 
@@ -55,13 +63,15 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 
 	res, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("reservation not found in session"))
+		m.App.Session.Put(r.Context(), "error", "reservation not found")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	room, err := m.DB.GetRoomByID(res.RoomID)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "room not found")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	res.Room.RoomName = room.RoomName
@@ -88,14 +98,16 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("can't get from session"))
+		m.App.Session.Put(r.Context(), "error", "reservation not found")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	// ensure that we can parse the form
 	err := r.ParseForm()
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "cannot parse form")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -116,6 +128,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
+		http.Error(w, "form error", http.StatusSeeOther)
 
 		// re-render the form that did not pass validation
 		render.Template(w, r, "make-reservation.page.gohtml", &models.TemplateData{
@@ -128,7 +141,8 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	// validation passed, update database
 	newReservationID, err := m.DB.InsertReservation(reservation)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "cannot insert reservation")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -142,7 +156,8 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	err = m.DB.InsertRoomRestriction(restriction)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "cannot insert room restriction")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -221,6 +236,19 @@ type jsonResponse struct {
 
 // AvailabilityJSON handles requests for availability and sends JSON response
 func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
+	// parse the request body - required for testing
+	err := r.ParseForm()
+	if err != nil {
+		resp := jsonResponse{
+			OK: false,
+			Message: "Internal server error",
+		}
+
+		out, _ := json.MarshalIndent(resp, "", "    ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
+		return
+	}
 
 	sd := r.Form.Get("start")
 	ed := r.Form.Get("end")
@@ -228,7 +256,19 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 	endDate, _ := time.Parse(time.DateOnly, ed)
 	roomID, _ := strconv.Atoi(r.Form.Get("room_id"))
 
-	available, _ := m.DB.SearchAvailabilityByDatesAndRoomID(startDate, endDate, roomID)
+	available, err := m.DB.SearchAvailabilityByDatesAndRoomID(startDate, endDate, roomID)
+	if err != nil {
+		resp := jsonResponse{
+			OK: false,
+			Message: "Error searching database for availability",
+		}
+
+		out, _ := json.MarshalIndent(resp, "", "    ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
+		return
+	}
+
 	resp := jsonResponse{
 		OK:        available,
 		Message:   "",
@@ -237,11 +277,7 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 		RoomID:    strconv.Itoa(roomID),
 	}
 
-	out, err := json.MarshalIndent(resp, "", "     ")
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
+	out, _ := json.MarshalIndent(resp, "", "     ")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)
