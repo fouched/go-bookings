@@ -30,9 +30,13 @@ func main() {
 	}
 	// close database connection after application has stopped
 	defer db.SQL.Close()
+	// close mail channel
+	defer close(app.MailChan)
+	// start listening for mail
+	listenForMail()
+	fmt.Println("Started mail listener")
 
 	fmt.Println(fmt.Sprintf("Starting application on %s", portNumber))
-
 	srv := &http.Server{
 		Addr:    portNumber,
 		Handler: routes(&app),
@@ -49,6 +53,9 @@ func run() (*driver.DB, error) {
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
+
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 
 	// change to true for production
 	app.InProduction = false

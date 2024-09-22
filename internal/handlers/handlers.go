@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/fouched/go-bookings/internal/config"
 	"github.com/fouched/go-bookings/internal/driver"
 	"github.com/fouched/go-bookings/internal/forms"
@@ -38,7 +39,7 @@ func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 func NewTestRepo(a *config.AppConfig) *Repository {
 	return &Repository{
 		App: a,
-		DB: dbrepo.NewTestingRepo(a),
+		DB:  dbrepo.NewTestingRepo(a),
 	}
 }
 
@@ -161,6 +162,41 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// send notifications
+	// client
+	htmlMessage := fmt.Sprintf(`
+		<strong>Reservation Confirmation</strong><br>
+		Dear %s, <br>
+		This is to confirm you reservation from %s to %s.
+	`, reservation.FirstName,
+		reservation.StartDate.Format(time.DateOnly),
+		reservation.EndDate.Format(time.DateOnly))
+
+	msg := models.MailData{
+		To:       reservation.Email,
+		From:     "me@here.com",
+		Subject:  "Reservation confirmation",
+		Content:  htmlMessage,
+		Template: "basic.html",
+	}
+	m.App.MailChan <- msg
+
+	// owner
+	htmlMessage = fmt.Sprintf(`
+		<strong>Reservation Notification</strong><br>
+		A reservation has been made for %s from %s to %s.
+	`, reservation.FirstName,
+		reservation.StartDate.Format(time.DateOnly),
+		reservation.EndDate.Format(time.DateOnly))
+
+	msg = models.MailData{
+		To:      "me@here.com",
+		From:    "me@here.com",
+		Subject: "Reservation notification",
+		Content: htmlMessage,
+	}
+	m.App.MailChan <- msg
+
 	// validation passed, put form data into session for confirmation screen
 	m.App.Session.Put(r.Context(), "reservation", reservation)
 	// Good practice: prevent a post re-submit with a http redirect
@@ -240,7 +276,7 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		resp := jsonResponse{
-			OK: false,
+			OK:      false,
 			Message: "Internal server error",
 		}
 
@@ -259,7 +295,7 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 	available, err := m.DB.SearchAvailabilityByDatesAndRoomID(startDate, endDate, roomID)
 	if err != nil {
 		resp := jsonResponse{
-			OK: false,
+			OK:      false,
 			Message: "Error searching database for availability",
 		}
 
