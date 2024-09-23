@@ -1,7 +1,7 @@
 # go-bookings
 A basic booking system - used while learning Go
 
-Built in Go version 1.20
+Built in Go version 1.20 - time passes now running on 1.22...
 
 Uses 	
 - [SCS](https://github.com/alexedwards/scs) for session management
