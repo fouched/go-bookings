@@ -9,5 +9,5 @@ Uses
 - [no surf](https://github.com/justinas/nosurf) for CSRF tokens
 - [go-validator](https://github.com/asaskevich/govalidator) for validation
 - [go-simple-mail](https://github.com/xhit/go-simple-mail) SMTP email library
-
+- [bcrypt](https://pkg.go.dev/golang.org/x/crypto) used for hashing
 
