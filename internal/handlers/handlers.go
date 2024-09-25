@@ -460,3 +460,18 @@ func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
 		Form: forms.New(nil),
 	})
 }
+
+func (m *Repository) AdminReservationsNew(w http.ResponseWriter, r *http.Request) {
+	err := render.Template(w, r, "admin-reservations-new.page.gohtml", &models.TemplateData{})
+	if err != nil {
+		m.App.ErrorLog.Println(err)
+	}
+}
+
+func (m *Repository) AdminReservationsAll(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "admin-reservations-all.page.gohtml", &models.TemplateData{})
+}
+
+func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "admin-reservations-calendar.page.gohtml", &models.TemplateData{})
+}
