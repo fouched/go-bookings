@@ -10,7 +10,12 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"time"
 )
+
+var functions = template.FuncMap{
+	"shortDate": ShortDate,
+}
 
 var app *config.AppConfig
 var pathToTemplates = "./templates"
@@ -18,6 +23,10 @@ var pathToTemplates = "./templates"
 // NewRenderer sets the config for the template package
 func NewRenderer(a *config.AppConfig) {
 	app = a
+}
+
+func ShortDate(t time.Time) string {
+	return t.Format(time.DateOnly)
 }
 
 func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
@@ -75,7 +84,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 	// range through all pages found
 	for _, page := range pages {
 		name := filepath.Base(page)
-		ts, err := template.New(name).ParseFiles(page)
+		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
 		if err != nil {
 			return myCache, err
 		}

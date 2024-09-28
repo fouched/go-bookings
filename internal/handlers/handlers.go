@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -461,15 +462,64 @@ func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// AdminReservationsNew show all new reservations in admin
 func (m *Repository) AdminReservationsNew(w http.ResponseWriter, r *http.Request) {
-	err := render.Template(w, r, "admin-reservations-new.page.gohtml", &models.TemplateData{})
+	reservations, err := m.DB.NewReservations()
 	if err != nil {
-		m.App.ErrorLog.Println(err)
+		helpers.ServerError(w, err)
+		return
 	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+
+	render.Template(w, r, "admin-reservations-new.page.gohtml", &models.TemplateData{
+		Data: data,
+	})
 }
 
+// AdminReservationsAll show all reservations in admin
 func (m *Repository) AdminReservationsAll(w http.ResponseWriter, r *http.Request) {
-	render.Template(w, r, "admin-reservations-all.page.gohtml", &models.TemplateData{})
+	reservations, err := m.DB.AllReservations()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+
+	render.Template(w, r, "admin-reservations-all.page.gohtml", &models.TemplateData{
+		Data: data,
+	})
+}
+
+// AdminReservationShow shows the reservation in admin
+func (m *Repository) AdminReservationShow(w http.ResponseWriter, r *http.Request) {
+	exploded := strings.Split(r.RequestURI, "/")
+	// slices count from position 1
+	id, err := strconv.Atoi(exploded[4])
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+
+	src := exploded[3]
+	stringMap := make(map[string]string)
+	stringMap["src"] = src
+
+	res, err := m.DB.GetReservationById(id)
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+
+	data := make(map[string]interface{})
+	data["reservation"] = res
+
+	render.Template(w, r, "admin-reservation-show.page.gohtml", &models.TemplateData{
+		StringMap: stringMap,
+		Data: data,
+		Form: forms.New(nil),
+	})
 }
 
 func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Request) {
