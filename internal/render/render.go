@@ -15,6 +15,9 @@ import (
 
 var functions = template.FuncMap{
 	"shortDate": ShortDate,
+	"formatDate": FormatDate,
+	"iterate": Iterate,
+	"add": Add,
 }
 
 var app *config.AppConfig
@@ -25,8 +28,26 @@ func NewRenderer(a *config.AppConfig) {
 	app = a
 }
 
+func Add(a, b int) int {
+	return a + b
+}
+
+// Iterate returns a slice of ints starting at 1, up to count (exclusive)
+func Iterate(count int) []int {
+	var i int
+	var items []int
+	for i = 0; i < count; i++ {
+		items = append(items, i)
+	}
+	return items
+}
+
 func ShortDate(t time.Time) string {
 	return t.Format(time.DateOnly)
+}
+
+func FormatDate(t time.Time, f string) string {
+	return t.Format(f)
 }
 
 func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
