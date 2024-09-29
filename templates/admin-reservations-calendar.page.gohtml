@@ -1,7 +1,7 @@
 {{template "admin" .}}
 
 {{define "page-title"}}
-    Calendar reservations
+    Calendar
 {{end}}
 
 {{define "content"}}
@@ -11,11 +11,11 @@
         </div>
         <div class="float-start">
             <a href="/admin/reservations-calendar?y={{index .StringMap "last_month_year"}}&m={{index .StringMap "last_month"}}"
-               class="btn btn-xs btn-outline-secondary">&lt;&lt;</a>
+               class="btn btn-sm btn-outline-secondary">&lt;&lt;</a>
         </div>
         <div class="float-end">
             <a href="/admin/reservations-calendar?y={{index .StringMap "next_month_year"}}&m={{index .StringMap "next_month"}}"
-               class="btn btn-xs btn-outline-secondary">&gt;&gt;</a>
+               class="btn btn-sm btn-outline-secondary">&gt;&gt;</a>
         </div>
     </div>
 {{end}}
