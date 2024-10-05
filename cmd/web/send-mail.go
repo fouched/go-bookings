@@ -20,6 +20,7 @@ func listenForMail() {
 }
 
 func sendMsg(m models.MailData) {
+	//TODO add to command line parameters
 	server := mail.NewSMTPClient()
 	server.Host = "localhost"
 	server.Port = 1025
