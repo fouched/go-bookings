@@ -1,6 +1,6 @@
 module github.com/fouched/go-bookings
 
-go 1.22.1
+go 1.23.4
 
 require (
 	github.com/alexedwards/scs/v2 v2.8.0
